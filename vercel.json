@@ -17,9 +17,5 @@
       "path": "/api/cron/check-stock",
       "schedule": "0 8 * * *"
     }
-  ],
-  "env": {
-    "PAYLOAD_SECRET": "@payload_secret",
-    "DATABASE_URI": "@database_uri"
-  }
+  ]
 }
