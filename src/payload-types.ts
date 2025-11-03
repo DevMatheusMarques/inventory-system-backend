@@ -68,7 +68,15 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
-    media: Media;
+    categories: Category;
+    suppliers: Supplier;
+    products: Product;
+    'stock-movements': StockMovement;
+    'stock-logs': StockLog;
+    notifications: Notification;
+    'purchase-orders': PurchaseOrder;
+    'audit-trail': AuditTrail;
+    'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -76,7 +84,15 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    'stock-movements': StockMovementsSelect<false> | StockMovementsSelect<true>;
+    'stock-logs': StockLogsSelect<false> | StockLogsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    'purchase-orders': PurchaseOrdersSelect<false> | PurchaseOrdersSelect<true>;
+    'audit-trail': AuditTrailSelect<false> | AuditTrailSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -119,6 +135,7 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  role: 'admin' | 'manager' | 'employee';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -139,22 +156,151 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
+ * via the `definition` "categories".
  */
-export interface Media {
+export interface Category {
   id: string;
-  alt: string;
+  name: string;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers".
+ */
+export interface Supplier {
+  id: string;
+  name: string;
+  cnpj: string;
+  email: string;
+  phone: string;
+  cep: string;
+  address: string;
+  number?: string | null;
+  complement?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  name: string;
+  category: string | Category;
+  supplier: string | Supplier;
+  stock: number;
+  minStock: number;
+  maxStock: number;
+  costPrice?: number | null;
+  salePrice?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-movements".
+ */
+export interface StockMovement {
+  id: string;
+  product: string | Product;
+  type: 'in' | 'out';
+  quantity: number;
+  date: string;
+  unitCost?: number | null;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-logs".
+ */
+export interface StockLog {
+  id: string;
+  product: string | Product;
+  movement: string | StockMovement;
+  user?: (string | null) | User;
+  type: 'in' | 'out';
+  quantity: number;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: string;
+  message: string;
+  type?: ('warning' | 'error' | 'info') | null;
+  read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "purchase-orders".
+ */
+export interface PurchaseOrder {
+  id: string;
+  supplier: string | Supplier;
+  status?: ('pending' | 'received') | null;
+  items?:
+    | {
+        product: string | Product;
+        quantity: number;
+        unitPrice: number;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-trail".
+ */
+export interface AuditTrail {
+  id: string;
+  user?: (string | null) | User;
+  collection: string;
+  documentId: string;
+  action: string;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: string;
+  key: string;
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -168,8 +314,40 @@ export interface PayloadLockedDocument {
         value: string | User;
       } | null)
     | ({
-        relationTo: 'media';
-        value: string | Media;
+        relationTo: 'categories';
+        value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'suppliers';
+        value: string | Supplier;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'stock-movements';
+        value: string | StockMovement;
+      } | null)
+    | ({
+        relationTo: 'stock-logs';
+        value: string | StockLog;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: string | Notification;
+      } | null)
+    | ({
+        relationTo: 'purchase-orders';
+        value: string | PurchaseOrder;
+      } | null)
+    | ({
+        relationTo: 'audit-trail';
+        value: string | AuditTrail;
+      } | null)
+    | ({
+        relationTo: 'payload-kv';
+        value: string | PayloadKv;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -218,6 +396,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -237,21 +416,126 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
+ * via the `definition` "categories_select".
  */
-export interface MediaSelect<T extends boolean = true> {
-  alt?: T;
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers_select".
+ */
+export interface SuppliersSelect<T extends boolean = true> {
+  name?: T;
+  cnpj?: T;
+  email?: T;
+  phone?: T;
+  cep?: T;
+  address?: T;
+  number?: T;
+  complement?: T;
+  neighborhood?: T;
+  city?: T;
+  state?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  category?: T;
+  supplier?: T;
+  stock?: T;
+  minStock?: T;
+  maxStock?: T;
+  costPrice?: T;
+  salePrice?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-movements_select".
+ */
+export interface StockMovementsSelect<T extends boolean = true> {
+  product?: T;
+  type?: T;
+  quantity?: T;
+  date?: T;
+  unitCost?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-logs_select".
+ */
+export interface StockLogsSelect<T extends boolean = true> {
+  product?: T;
+  movement?: T;
+  user?: T;
+  type?: T;
+  quantity?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  message?: T;
+  type?: T;
+  read?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "purchase-orders_select".
+ */
+export interface PurchaseOrdersSelect<T extends boolean = true> {
+  supplier?: T;
+  status?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        unitPrice?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-trail_select".
+ */
+export interface AuditTrailSelect<T extends boolean = true> {
+  user?: T;
+  collection?: T;
+  documentId?: T;
+  action?: T;
+  data?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

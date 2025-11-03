@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "pnpm install",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./src",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/check-stock",
+      "schedule": "0 8 * * *"
+    }
+  ],
+  "env": {
+    "PAYLOAD_SECRET": "@payload_secret",
+    "DATABASE_URI": "@database_uri"
+  }
+}
